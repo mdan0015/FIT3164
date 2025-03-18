@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicting Chemoresistance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to right, #1e1e2f, #3a3a5e);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 2em;
+            color: #E0AFA0;
+        }
+        p {
+            font-size: 1em;
+            color: #ffffff;
+        }
+        .upload-box {
+            margin-top: 20px;
+        }
+        .upload-box label {
+            background-color: #9b59b6;
+            color: white;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .upload-box input {
+            display: none;
+        }
+        #file-info {
+            margin-top: 10px;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1><em>Predicting Chemoresistance</em></h1>
+        <p>We aim to provide a precise analysis of predicting chemoresistance value using our data model. Import the cancer cell lines CSV dataset, and the analysis will be conducted in a few minutes.</p>
+        <div class="upload-box">
+            <label for="file-upload">📤 Select file</label>
+            <input type="file" id="file-upload" accept=".csv">
+        </div>
+        <p id="file-info"></p>
+    </div>
+    <script src="web.js"></script> <!-- Linking JS here -->
+
+</body>
+</html>
+
