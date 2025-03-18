@@ -1,20 +1,7 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS  # 🔥 Import CORS
+import pandas as pd
 
-app = Flask(__name__)
-CORS(app)  # 🔥 Enable CORS
 
-@app.route('/upload', methods=['POST'])
-def upload():
-    data = request.json  # Receive JSON data
-    file_content = data.get("content", "")  # Extract CSV content
+df = pd.read_csv("uploads/Amazon_Alibaba_eBay_Comparison_Daily_2010_2020.csv")
 
-    if not file_content:
-        return jsonify({"error": "No file content received"}), 400
-
-    print("Received CSV Data:\n", file_content)  # Print to console (for debugging)
-
-    return jsonify({"message": "File received successfully", "lines": file_content.split("\n")})
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)  # Run Flask on port 5000
+# ✅ Print the first few rows to verify
+print(df.head())
