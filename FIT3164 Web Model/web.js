@@ -39,6 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .then(res => res.json())
         .then(data => {
+            console.log("✅ Response from server:", data);  // 🧪 Log for debugging
             if (data.error) {
                 infoDiv.innerText += "\n❌ Error: " + data.error;
                 return;
@@ -95,14 +96,14 @@ function w3_close() {
 }
 
 function displayCSV(csvText) {
-    const rows = csvText.trim().split("\n").map(r => r.split(","));
+    const rows = csvText.trim().split("\n").map(row => row.split(","));
     const preview = document.getElementById("csv_preview");
-    preview.innerHTML = "";
+    preview.innerHTML = "";  // Clear previous
 
     const table = document.createElement("table");
     table.style.borderCollapse = "collapse";
     table.style.margin = "0 auto";
-    table.style.backgroundColor = "#fff";
+    table.style.backgroundColor = "#ffffff";
     table.style.color = "#000";
     table.style.fontSize = "14px";
 
@@ -113,7 +114,7 @@ function displayCSV(csvText) {
             const td = document.createElement(tag);
             td.innerText = cell;
             td.style.border = "1px solid #ccc";
-            td.style.padding = "6px 10px";
+            td.style.padding = "8px 12px";
             tr.appendChild(td);
         });
         table.appendChild(tr);
