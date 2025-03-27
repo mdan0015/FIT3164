@@ -1,0 +1,7 @@
+# AIM
+
+Trim down the current dataset ~ breast cancer, multi-omics (trans & prot), gdsc1, isosmile (converted to morgan) to both:
+
+1. Filter dataset to only 1 omics each (1st transcriptomics, 2nd:proteomics, 3rd: geonomics)
+2. Perform deep learning on each omics to find their values
+3. Attempt with other values e.g., **AUC**, RMSE, Z_SCORE  --> edit the pre-processing dataset
