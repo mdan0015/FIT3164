@@ -80,7 +80,7 @@ if (datasetLink) {
 }
 
 function showRequirements() {
-    alert("Ensure that all columns are named exactly as shown.\nThe dataset should only contain:\n- COSMIC_ID\n- GDSC_DRUG_ID\n- GENE_EXPRESSION\n- DRUG_ISOSMILES\n\n⚠️ If your dataset does not have 'DRUG_ISOSMILES'(With Morgan Finger), please use our preprocessing tool to generate it.");
+    alert("Ensure that all columns are named exactly as shown.\nThe dataset should only contain:\n- COSMIC_ID\n- GDSC_DRUG_ID\n- GENE_EXPRESSION\n- DRUG_ISOSMILES\n\n⚠️ If your dataset does not have 'DRUG_ISOSMILES' process with Morgan Finger, please use our preprocessing tool to generate it.");
 }
 
 
@@ -119,4 +119,12 @@ function displayCSV(csvText) {
     });
 
     preview.appendChild(table);
+}
+
+function w3_open() {
+    document.getElementById("mySidebar").style.display = "block";
+}
+
+function w3_close() {
+    document.getElementById("mySidebar").style.display = "none";
 }
