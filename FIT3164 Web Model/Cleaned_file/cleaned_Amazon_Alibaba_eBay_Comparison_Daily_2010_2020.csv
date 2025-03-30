@@ -1,0 +1,6 @@
+Date,Company,Total_Sales (USD Billion),Number_of_Products (Million),Active_Users (Million),Market_Share (%),Gross_Margin (%),Operating_Income (%),Region_with_Highest_Sales,Average_Order_Value (USD),Mobile_Transactions (%),Number_of_Sellers (Million)
+2010-01-01,Amazon,187.58,14.27,734.67,31.94,29.36,8.9,Europe,79.7,46.69,3.29
+2010-01-02,Amazon,325.62,0.94,724.78,47.23,20.05,29.81,North America,59.55,56.24,8.92
+2010-01-03,Amazon,145.97,9.22,148.1,18.15,41.98,16.4,Europe,100.39,49.12,19.67
+2010-01-04,Amazon,233.65,12.91,683.5,25.27,20.8,28.56,Asia,125.09,45.23,2.4
+2010-01-05,Amazon,342.27,6.66,130.82,27.28,22.06,27.73,Asia,106.13,45.59,10.64

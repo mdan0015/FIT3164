@@ -5,7 +5,7 @@ from flask_cors import CORS
 from flask import send_from_directory
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://127.0.0.1:5500"}})  # Allow all endpoints
+CORS(app, supports_credentials=True)
 
 # ✅ Create separate upload folders
 PREDICTION_FOLDER = "uploads_prediction"
@@ -34,7 +34,7 @@ def upload_prediction():
 
     return jsonify({"message": "Prediction file uploaded successfully", "file_path": file_path})
 
-
+print("📥 Preprocessing file upload received!")
 @app.route('/upload_preprocessing', methods=['POST'])
 def upload_preprocessing():
     if "file" not in request.files:
@@ -67,7 +67,7 @@ def upload_preprocessing():
             "message": "Preprocessing completed successfully",
             "file_path": file_path,
             "cleaned_file": cleaned_filename,
-            "download_url": f"http://127.0.0.1:5001/download_cleaned/{cleaned_filename}"
+            "download_url": f"http://127.0.0.1:5000/download_cleaned/{cleaned_filename}"
         })
 
     except Exception as e:
@@ -82,4 +82,4 @@ def download_cleaned_file(filename):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)  # ✅ Same port (5001)
+    app.run(debug=True, port=5000)  # ✅ Same port (5000)

@@ -6,13 +6,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (predictionInput) {
         predictionInput.addEventListener("change", function (event) {
-            uploadFile(event, "file_info_prediction", "http://127.0.0.1:5001/upload_prediction");
+            uploadFile(event, "file_info_prediction", "http://127.0.0.1:5000/upload_prediction");
         });
     }
 
     if (preprocessingInput) {
         preprocessingInput.addEventListener("change", function (event) {
-            uploadFile(event, "file_info_preprocessing", "http://127.0.0.1:5001/upload_preprocessing");
+            uploadFile(event, "file_info_preprocessing", "http://127.0.0.1:5000/upload_preprocessing");
         });
     }
 
@@ -70,8 +70,6 @@ document.addEventListener("DOMContentLoaded", function () {
     
     
 });
-
-
 
 
 const datasetLink = document.getElementById("cancer-dataset-link");
