@@ -14,7 +14,6 @@
             color: #ffffff;
         }
 
-        /* Sidebar */
         .w3-sidebar {
             width: 250px;
             position: fixed;
@@ -76,7 +75,6 @@
             cursor: pointer;
         }
 
-        /* Important Message */
         .important-message {
             background-color: #ffcc00;
             color: #2c3e50;
@@ -88,7 +86,6 @@
             margin-top: 20px;
         }
 
-        /* Sidebar Toggle Button */
         .sidebar-btn {
             background:  #1e1e2f;
             color: white;
@@ -101,6 +98,21 @@
             left: 15px;
             border-radius: 5px;
         }
+
+        .skip-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 25px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .skip-link:hover {
+            background-color: #2980b9;
+        }
     </style>
 </head>
 <body>
@@ -108,8 +120,8 @@
     <!-- Sidebar -->
     <div class="w3-sidebar w3-bar-block" id="mySidebar">
         <button onclick="w3_close()" class="w3-bar-item w3-button w3-large">CLOSE &times;</button>
-        <a href="main.html" class="w3-bar-item w3-button">PREDICTIVE MODEL</a>
         <a href="preprocessing.html" class="w3-bar-item w3-button">PREPROCESSING</a>
+        <a href="main.html" class="w3-bar-item w3-button">PREDICTIVE MODEL</a>
     </div>
 
     <!-- Sidebar Toggle Button -->
@@ -117,20 +129,25 @@
 
     <div class="container">
         <h1><em>Preprocessing Data</em></h1>
-        <p>Before proceeding, please ensure your dataset meets the requirements. Your dataset must only contain the following columns: <strong>COSMIC_ID</strong>, <strong>GDSC_DRUG_ID</strong>, and <strong>GENE_EXPRESSIONS</strong>. Ensure that all columns are named exactly as shown.</p>
+        <p><strong>Welcome! 👋</strong> This is the <strong>first step</strong> of using the Chemoresistance Prediction Tool.</p>
+        <p>If your <strong>DRUG_ISOSMILES</strong> haven't process with Morgan Fingerprint, please upload it here for preprocessing. Make sure your columns <strong>DRUG_ISOSMILES</strong> are named exactly as shown.</p>
+        <p>If your dataset is <strong>already preprocessed</strong> with Morgan Fingerprint, you can <a href="main.html" style="color: #ff5c5c; font-weight: bold; text-decoration: underline;">Skip to Prediction →</a>
+        </p>
+
 
         <div class="upload-box">
-            <!-- Wrap in a form with no action -->
             <form id="upload_form_preprocessing" onsubmit="return false;">
-                <label for="file_upload_preprocessing">📤 Select file</label>
+                <label for="file_upload_preprocessing">📤 Upload Dataset</label>
                 <input type="file" id="file_upload_preprocessing" accept=".csv">
             </form>
         </div>
+
         <p id="file_info_preprocessing"></p>
         <div id="csv_preview" style="margin-top: 30px;"></div>  
     </div>
 
-    <script src="./web.js"></script> <!-- Ensure correct path -->
 
+
+    <script src="./web.js"></script>
 </body>
 </html>
