@@ -5,7 +5,12 @@ from flask_cors import CORS
 from flask import send_from_directory
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
+# Custom safe upload folder
+UPLOAD_TEMP_DIR = os.path.abspath("uploads_temp")
+os.makedirs(UPLOAD_TEMP_DIR, exist_ok=True)
+
+app.config["UPLOAD_FOLDER"] = UPLOAD_TEMP_DIR
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # ✅ Create separate upload folders
 PREDICTION_FOLDER = "uploads_prediction"
@@ -17,7 +22,6 @@ os.makedirs(PREPROCESSING_FOLDER, exist_ok=True)
 app.config["PREDICTION_FOLDER"] = PREDICTION_FOLDER
 app.config["PREPROCESSING_FOLDER"] = PREPROCESSING_FOLDER
 
-# ✅ Prediction file upload
 @app.route('/upload_prediction', methods=['POST'])
 def upload_prediction():
     if "file" not in request.files:
@@ -27,12 +31,29 @@ def upload_prediction():
     if uploaded_file.filename == "":
         return jsonify({"error": "No file selected"}), 400
 
-    file_path = os.path.join(app.config["PREDICTION_FOLDER"], uploaded_file.filename)
-    uploaded_file.save(file_path)  # ✅ Save file
+    file_path = os.path.join(app.config["UPLOAD_FOLDER"], uploaded_file.filename)
+    uploaded_file.save(file_path)
 
-    print(f"✅ Prediction file saved: {file_path}")
+    try:
+        # Run prediction script with uploaded file
+        result = subprocess.run(["python", "predict_chemoresistance.py", file_path], capture_output=True, text=True)
+        print("✅ Prediction Output:", result.stdout)
 
-    return jsonify({"message": "Prediction file uploaded successfully", "file_path": file_path})
+        output_file = "predictions_output.csv"  # Default name in script
+        output_path = os.path.abspath(output_file)
+
+        if not os.path.exists(output_path):
+            return jsonify({"error": "Prediction output file not found"}), 500
+
+        return jsonify({
+            "message": "Prediction completed successfully",
+            "file_path": file_path,
+            "output_file": os.path.basename(output_path),
+            "download_url": f"http://127.0.0.1:5000/download_prediction/{os.path.basename(output_path)}"
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 print("📥 Preprocessing file upload received!")
 @app.route('/upload_preprocessing', methods=['POST'])
@@ -79,6 +100,10 @@ def download_cleaned_file(filename):
     cleaned_folder = "Cleaned_file"
     return send_from_directory(cleaned_folder, filename, as_attachment=True)
 
+
+@app.route('/download_prediction/<filename>')
+def download_prediction_file(filename):
+    return send_from_directory('.', filename, as_attachment=True)
 
 
 if __name__ == '__main__':
