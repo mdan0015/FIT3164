@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", function () {
     
             const link = document.createElement("a");
             link.href = data.download_url;
-            link.innerText = "⬇️ Download Cleaned File";
+            link.innerText = "⬇️ Download Prediction File";
             link.target = "_blank";
             link.style = "display:inline-block;margin-top:15px;background-color:#2ecc71;color:white;padding:10px 20px;border-radius:8px;text-decoration:none";
     
