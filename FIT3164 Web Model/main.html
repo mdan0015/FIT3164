@@ -100,6 +100,16 @@
             font-size: 14px;
             color: #ccc;
         }
+
+        #csv_preview input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 50%;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+        }
     </style>
 </head>
 <body>
@@ -107,7 +117,6 @@
     <!-- Sidebar -->
     <div class="w3-sidebar w3-bar-block" id="mySidebar">
         <button onclick="w3_close()" class="w3-bar-item w3-button w3-large">CLOSE &times;</button>
-        <a href="preprocessing.html" class="w3-bar-item w3-button">PREPROCESSING</a>
         <a href="main.html" class="w3-bar-item w3-button">PREDICTIVE MODEL</a>
     </div>
 
@@ -125,7 +134,17 @@
             <label for="file_upload_prediction">📤 Select file</label>
             <input type="file" id="file_upload_prediction" accept=".csv">
         </div>
+        <div id="loading_indicator" style="display: none; margin-top: 20px; font-size: 18px; color: #E0AFA0;">
+            ⏳ Processing your file, please wait...
+        </div>
         <p id="file_info_prediction"></p>
+        <div id="search_controls" style="display: none;">
+            <input type="text" id="drug_id_search" placeholder="🔍 Type DRUG_ID to search..." style="padding: 10px; font-size: 16px; width: 50%; margin-top: 30px; border-radius: 8px; border: none; outline: none;">
+            <button id="search_button" style="padding:10px 20px; margin-top:10px; font-size:16px; border-radius:6px; background:#9b59b6; color:#fff; border:none; cursor:pointer;">
+                🔍 Search
+            </button>
+        </div>
+        <div id="csv_preview" style="margin-top:40px;"></div>
     </div>
 
     <script src="./web.js"></script>

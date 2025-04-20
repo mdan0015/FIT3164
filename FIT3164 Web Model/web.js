@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // ✅ Attach event listeners for file uploads
 
     let predictionInput = document.getElementById("file_upload_prediction");
-    let preprocessingInput = document.getElementById("file_upload_preprocessing");
+
 
     if (predictionInput) {
         predictionInput.addEventListener("change", function (event) {
@@ -10,11 +10,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    if (preprocessingInput) {
-        preprocessingInput.addEventListener("change", function (event) {
-            uploadFile(event, "file_info_preprocessing", "http://127.0.0.1:5000/upload_preprocessing");
-        });
-    }
 
     function uploadFile(event, fileInfoId, uploadUrl) {
         const file = event.target.files[0];
@@ -31,7 +26,9 @@ document.addEventListener("DOMContentLoaded", function () {
     
         const formData = new FormData();
         formData.append("file", file);
-    
+
+        const loadingDiv = document.getElementById("loading_indicator");
+        loadingDiv.style.display = "block"; // Show loading
         fetch(uploadUrl, {
             method: "POST",
             mode: "cors",
@@ -39,7 +36,8 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .then(res => res.json())
         .then(data => {
-            console.log("✅ Response from server:", data);  // 🧪 Log for debugging
+            loadingDiv.style.display = "none"; // ✅ Hide loading
+            console.log("✅ Response from server:", data);
             if (data.error) {
                 infoDiv.innerText += "\n❌ Error: " + data.error;
                 return;
@@ -47,9 +45,15 @@ document.addEventListener("DOMContentLoaded", function () {
     
             const link = document.createElement("a");
             link.href = data.download_url;
-            link.innerText = "⬇️ Download Prediction File";
             link.target = "_blank";
             link.style = "display:inline-block;margin-top:15px;background-color:#2ecc71;color:white;padding:10px 20px;border-radius:8px;text-decoration:none";
+    
+            // ✅ Correct link label based on endpoint
+            if (uploadUrl.includes("upload_prediction")) {
+                link.innerText = "⬇️ Download Prediction File";
+            } else {
+                link.innerText = "⬇️ Download Cleaned File";
+            }
     
             infoDiv.appendChild(document.createElement("br"));
             infoDiv.appendChild(link);
@@ -63,10 +67,36 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
         })
         .catch(error => {
+            loadingDiv.style.display = "none"; // ✅ Hide on error
             console.error("❌ Upload failed:", error);
             infoDiv.innerText = "❌ Upload failed.";
         });
     }
+
+    const searchInput = document.getElementById("drug_id_search");
+    const searchButton = document.getElementById("search_button");
+
+    searchButton.addEventListener("click", function () {
+        if (!allRows.length) return;
+    
+        const value = searchInput.value.toLowerCase();
+        const header = allRows[0];
+        const drugIdIndex = header.indexOf("DRUG_ID");
+        if (drugIdIndex === -1) return;
+    
+        const filteredRows = allRows.slice(1).filter(row =>
+            row[drugIdIndex]?.toLowerCase().includes(value)
+        );
+    
+        if (filteredRows.length === 0) {
+            displayNoMatchMessage();
+            return;
+        }
+    
+        const filtered = [header, ...filteredRows];
+        displayTable(filtered);
+    });
+    
     
     
 });
@@ -93,10 +123,48 @@ function w3_close() {
     document.getElementById("mySidebar").style.display = "none";
 }
 
+
+
+function w3_open() {
+    document.getElementById("mySidebar").style.display = "block";
+}
+
+function w3_close() {
+    document.getElementById("mySidebar").style.display = "none";
+}
+
+
 function displayCSV(csvText) {
-    const rows = csvText.trim().split("\n").map(row => row.split(","));
+    allRows = csvText.trim().split("\n").map(row => row.split(","));
+    displayTable(allRows);
+
+    // ✅ Show the search box after table is displayed
+    document.getElementById("search_controls").style.display = "block";
+}
+
+function createSearchInput(rows) {
+    const container = document.getElementById("csv_preview");
+    const input = document.createElement("input");
+    input.placeholder = "🔍 Search by DRUG_ID...";
+    input.style = "margin:20px auto; display:block; padding:10px; width:50%; font-size:16px; border-radius:5px; border:none; outline:none;";
+    
+    const header = rows[0];
+    const drugIdIndex = header.indexOf("DRUG_ID");
+
+    input.addEventListener("input", function () {
+        const value = input.value.toLowerCase();
+        const filtered = [header, ...rows.slice(1).filter(row =>
+            row[drugIdIndex]?.toString().toLowerCase().includes(value)
+        )];
+        displayTable(filtered);
+    });
+
+    container.prepend(input);
+}
+
+function displayTable(rows) {
     const preview = document.getElementById("csv_preview");
-    preview.innerHTML = "";  // Clear previous
+    preview.innerHTML = ""; // Clear previous
 
     const table = document.createElement("table");
     table.style.borderCollapse = "collapse";
@@ -121,10 +189,15 @@ function displayCSV(csvText) {
     preview.appendChild(table);
 }
 
-function w3_open() {
-    document.getElementById("mySidebar").style.display = "block";
-}
+let allRows = []; // Global CSV storage
 
-function w3_close() {
-    document.getElementById("mySidebar").style.display = "none";
+
+function displayNoMatchMessage() {
+    const preview = document.getElementById("csv_preview");
+    preview.innerHTML = ""; // Clear table
+
+    const msg = document.createElement("p");
+    msg.innerText = "⚠️ No matching DRUG_ID found.";
+    msg.style = "color: #ff7675; font-size: 18px; margin-top: 20px;";
+    preview.appendChild(msg);
 }
