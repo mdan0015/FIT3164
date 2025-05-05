@@ -4,6 +4,7 @@ import pandas as pd
 import joblib
 import sys
 from tensorflow.keras.models import load_model
+from preprocessing_model import preprocess_user_dataset;
 
 # Step 1: Load the trained model and scaler
 def load_pipeline():
@@ -66,6 +67,19 @@ def save_predictions(original_data, predictions, output_file='predictions_output
     results_df = original_data[['DRUG_ID', 'DRUG_NAME', 'COSMIC_ID', 'CCLE_Name']].copy()
     results_df['Predicted_LN_IC50'] = predictions
 
+    # ✅ Label responsiveness
+    def classify(ln_ic50):
+        if ln_ic50 < 2.36:
+            return "High"
+        elif ln_ic50 <= 5.26:
+            return "Intermediate"
+        else:
+            return "Low"
+
+    results_df['Sensitivity'] = results_df['Predicted_LN_IC50'].apply(classify)
+
+    
+    # Optional: clean & sort
     before = results_df.shape[0]
     results_df = results_df.drop_duplicates(subset=['DRUG_ID', 'COSMIC_ID', 'CCLE_Name', 'DRUG_NAME'], keep='first')
     results_df = results_df.sort_values(by='Predicted_LN_IC50', ascending=True)
@@ -77,24 +91,39 @@ def save_predictions(original_data, predictions, output_file='predictions_output
     results_df.to_csv(output_file, index=False)
     print(f"✅ Predictions saved to {output_file}")
 
+
 # Step 5: Main function
 def main(input_file):
-    print("🚀 Loading model and scaler...")
-    model, scaler = load_pipeline()
-    print("✅ Model and scaler loaded successfully!")
+    print("🚀 Starting full pipeline with user dataset...")
 
-    print("📊 Preprocessing new data...")
-    original_data, X_new_scaled = preprocess_new_data(input_file, scaler)
+    # Step 1: Run preprocessing
+    preprocessed_path = "user_preprocessed_output.csv"
+    print("🧼 Preprocessing user dataset...")
+    from preprocessing_model import preprocess_user_dataset  # Ensure it's in the same folder or adjust import
+    preprocess_user_dataset(input_file, preprocessed_path)
+
+    # Step 2: Load model and scaler
+    print("🧠 Loading model and scaler...")
+    model, scaler = load_pipeline()
+
+    # Step 3: Preprocess data for prediction
+    print("📊 Prepping input for model prediction...")
+    original_data, X_new_scaled = preprocess_new_data(preprocessed_path, scaler)
 
     if original_data is None or X_new_scaled is None:
         print("❌ Exiting due to errors in data preprocessing.")
         return
 
-    print("🤖 Making predictions...")
+    # Step 4: Predict
+    print("🤖 Running predictions...")
     predictions = make_predictions(model, X_new_scaled)
 
-    print("📂 Saving predictions...")
+    # Step 5: Save predictions
+    print("💾 Saving predictions to CSV...")
     save_predictions(original_data, predictions)
+
+    print("✅ Done! Predictions are available in 'predictions_output.csv'")
+
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:

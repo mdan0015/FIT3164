@@ -1,203 +1,305 @@
 document.addEventListener("DOMContentLoaded", function () {
-    // ✅ Attach event listeners for file uploads
-
-    let predictionInput = document.getElementById("file_upload_prediction");
-
-
+    // ✅ File upload handler
+    const predictionInput = document.getElementById("file_upload_prediction");
     if (predictionInput) {
         predictionInput.addEventListener("change", function (event) {
             uploadFile(event, "file_info_prediction", "http://127.0.0.1:5000/upload_prediction");
         });
     }
 
-
-    function uploadFile(event, fileInfoId, uploadUrl) {
-        const file = event.target.files[0];
-        if (!file) return;
-    
-        if (file.type !== "text/csv" && !file.name.endsWith(".csv")) {
-            alert("⚠️ Please upload a CSV file.");
-            event.target.value = "";
-            return;
-        }
-    
-        const infoDiv = document.getElementById(fileInfoId);
-        infoDiv.innerText = "File Selected: " + file.name;
-    
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const loadingDiv = document.getElementById("loading_indicator");
-        loadingDiv.style.display = "block"; // Show loading
-        fetch(uploadUrl, {
-            method: "POST",
-            mode: "cors",
-            body: formData,
-        })
-        .then(res => res.json())
-        .then(data => {
-            loadingDiv.style.display = "none"; // ✅ Hide loading
-            console.log("✅ Response from server:", data);
-            if (data.error) {
-                infoDiv.innerText += "\n❌ Error: " + data.error;
-                return;
-            }
-    
-            const link = document.createElement("a");
-            link.href = data.download_url;
-            link.target = "_blank";
-            link.style = "display:inline-block;margin-top:15px;background-color:#2ecc71;color:white;padding:10px 20px;border-radius:8px;text-decoration:none";
-    
-            // ✅ Correct link label based on endpoint
-            if (uploadUrl.includes("upload_prediction")) {
-                link.innerText = "⬇️ Download Prediction File";
-            } else {
-                link.innerText = "⬇️ Download Cleaned File";
-            }
-    
-            infoDiv.appendChild(document.createElement("br"));
-            infoDiv.appendChild(link);
-    
-            // ✅ Show file preview
-            fetch(data.download_url)
-                .then(res => res.text())
-                .then(csvText => {
-                    displayCSV(csvText);
-                    document.getElementById("csv_preview").scrollIntoView({ behavior: "smooth" });
-                });
-        })
-        .catch(error => {
-            loadingDiv.style.display = "none"; // ✅ Hide on error
-            console.error("❌ Upload failed:", error);
-            infoDiv.innerText = "❌ Upload failed.";
-        });
-    }
-
-    const searchInput = document.getElementById("drug_id_search");
+    // ✅ Search button handler
     const searchButton = document.getElementById("search_button");
-
-    searchButton.addEventListener("click", function () {
-        if (!allRows.length) return;
-    
-        const value = searchInput.value.toLowerCase();
-        const header = allRows[0];
-        const drugIdIndex = header.indexOf("DRUG_ID");
-        if (drugIdIndex === -1) return;
-    
-        const filteredRows = allRows.slice(1).filter(row =>
-            row[drugIdIndex]?.toLowerCase().includes(value)
-        );
-    
-        if (filteredRows.length === 0) {
-            displayNoMatchMessage();
-            return;
-        }
-    
-        const filtered = [header, ...filteredRows];
-        displayTable(filtered);
-    });
-    
-    
-    
+    if (searchButton) {
+        searchButton.addEventListener("click", filterTable);
+    }
 });
 
+function uploadFile(event, fileInfoId, uploadUrl) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-const datasetLink = document.getElementById("cancer-dataset-link");
-if (datasetLink) {
-    datasetLink.addEventListener("click", function () {
-        showRequirements();
+    if (file.type !== "text/csv" && !file.name.endsWith(".csv")) {
+        alert("⚠️ Please upload a CSV file.");
+        event.target.value = "";
+        return;
+    }
+
+    const infoDiv = document.getElementById(fileInfoId);
+    infoDiv.innerText = "File Selected: " + file.name;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const loadingDiv = document.getElementById("loading_indicator");
+    const uploadSection = document.getElementById("upload-section");
+    const searchControls = document.getElementById("search_controls");
+    const csvPreview = document.getElementById("csv_preview");
+
+    uploadSection.style.display = "none";
+    searchControls.style.display = "none";
+    csvPreview.innerHTML = "";
+    loadingDiv.style.display = "block";
+
+    fetch(uploadUrl, {
+        method: "POST",
+        mode: "cors",
+        body: formData,
+    })
+    .then(res => res.json())
+    .then(data => {
+        loadingDiv.style.display = "none";
+        console.log("✅ Response from server:", data);
+
+        if (data.error) {
+            infoDiv.innerText += "\n❌ Error: " + data.error;
+            uploadSection.style.display = "block";
+            return;
+        }
+
+        const link = document.createElement("a");
+        link.href = data.download_url;
+        link.target = "_blank";
+        link.style = "display:inline-block;margin-top:15px;background-color:#2ecc71;color:white;padding:10px 20px;border-radius:8px;text-decoration:none";
+
+        link.innerText = uploadUrl.includes("upload_prediction")
+            ? "⬇️ Download Prediction File"
+            : "⬇️ Download Cleaned File";
+
+        infoDiv.appendChild(document.createElement("br"));
+        infoDiv.appendChild(link);
+
+        fetch(data.download_url)
+            .then(res => res.text())
+            .then(csvText => {
+                displayCSV(csvText);
+                document.getElementById("csv_preview").scrollIntoView({ behavior: "smooth" });
+            });
+    })
+    .catch(error => {
+        loadingDiv.style.display = "none";
+        console.error("❌ Upload failed:", error);
+        infoDiv.innerText = "❌ Upload failed.";
+        uploadSection.style.display = "block";
     });
 }
-
-function showRequirements() {
-    alert("Ensure that all columns are named exactly as shown.\nThe dataset should only contain:\n- COSMIC_ID\n- GDSC_DRUG_ID\n- GENE_EXPRESSION\n- DRUG_ISOSMILES\n\n⚠️ If your dataset does not have 'DRUG_ISOSMILES' process with Morgan Finger, please use our preprocessing tool to generate it.");
-}
-
-
-
-function w3_open() {
-    document.getElementById("mySidebar").style.display = "block";
-}
-
-function w3_close() {
-    document.getElementById("mySidebar").style.display = "none";
-}
-
-
-
-function w3_open() {
-    document.getElementById("mySidebar").style.display = "block";
-}
-
-function w3_close() {
-    document.getElementById("mySidebar").style.display = "none";
-}
-
 
 function displayCSV(csvText) {
     allRows = csvText.trim().split("\n").map(row => row.split(","));
     displayTable(allRows);
-
-    // ✅ Show the search box after table is displayed
     document.getElementById("search_controls").style.display = "block";
 }
 
-function createSearchInput(rows) {
-    const container = document.getElementById("csv_preview");
-    const input = document.createElement("input");
-    input.placeholder = "🔍 Search by DRUG_ID...";
-    input.style = "margin:20px auto; display:block; padding:10px; width:50%; font-size:16px; border-radius:5px; border:none; outline:none;";
-    
-    const header = rows[0];
-    const drugIdIndex = header.indexOf("DRUG_ID");
+function filterTable() {
+    if (!allRows.length) return;
 
-    input.addEventListener("input", function () {
-        const value = input.value.toLowerCase();
-        const filtered = [header, ...rows.slice(1).filter(row =>
-            row[drugIdIndex]?.toString().toLowerCase().includes(value)
-        )];
-        displayTable(filtered);
+    const cancerInput = document.getElementById("cancer_search").value.toLowerCase();
+    const header = allRows[0];
+    const ccleIndex = header.indexOf("CCLE_Name");
+
+    if (ccleIndex === -1) return;
+
+    const filteredRows = allRows.slice(1).filter(row => {
+        const ccle = row[ccleIndex]?.toLowerCase();
+        const cancerType = ccle?.split("_")[1]; // move here ✅
+        return !cancerInput || (cancerType && cancerType === cancerInput);
     });
 
-    container.prepend(input);
+    if (filteredRows.length === 0) {
+        displayNoMatchMessage();
+        return;
+    }
+
+    const filtered = [header, ...filteredRows];
+    displayTable(filtered);
 }
+
+let currentSortColumn = null;
+let sortAscending = true;
 
 function displayTable(rows) {
     const preview = document.getElementById("csv_preview");
-    preview.innerHTML = ""; // Clear previous
+    preview.innerHTML = "";
 
     const table = document.createElement("table");
-    table.style.borderCollapse = "collapse";
-    table.style.margin = "0 auto";
-    table.style.backgroundColor = "#ffffff";
-    table.style.color = "#000";
-    table.style.fontSize = "14px";
+    table.className = "styled-table";
+
+    const columnNameMap = {
+        "DRUG_ID": "Drug ID",
+        "DRUG_NAME": "Drug Name",
+        "COSMIC_ID": "Cosmic ID",
+        "CCLE_Name": "Cell Line",
+        "Predicted_LN_IC50": "Predicted_LN_IC50",
+        "Sensitivity": "Sensitivity"
+    };
+
+    const thead = document.createElement("thead");
+    const tbody = document.createElement("tbody");
 
     rows.forEach((row, i) => {
         const tr = document.createElement("tr");
-        row.forEach(cell => {
+        row.forEach((cell, colIndex) => {
             const tag = i === 0 ? "th" : "td";
             const td = document.createElement(tag);
-            td.innerText = cell;
-            td.style.border = "1px solid #ccc";
-            td.style.padding = "8px 12px";
+
+            if (i === 0) {
+                td.style.cursor = "pointer";
+
+                const colName = columnNameMap[cell] || cell;
+
+                const isCurrent = colIndex === currentSortColumn;
+                const icon = isCurrent
+                    ? (sortAscending ? " ▲ " : " ▼ ")
+                    : " ⬍"; // default neutral icon
+
+                td.innerHTML = colName + icon;
+
+                td.addEventListener("click", () => sortTableByColumn(colIndex));
+            } else {
+                // Make Drug Name a clickable Wikipedia link
+                const header = rows[0][colIndex];
+                if (header === "DRUG_NAME") {
+                    const drugName = cell.trim();
+                    const link = document.createElement("a");
+                    link.href = `https://en.wikipedia.org/wiki/${encodeURIComponent(drugName)}`;
+                    link.target = "_blank";
+                    link.rel = "noopener noreferrer";
+                    link.style.color = "#2c3e50";
+                    link.style.textDecoration = "underline";
+                    link.innerText = drugName;
+                    td.appendChild(link);
+                } else {
+                    td.innerText = cell;
+                }
+            }
+
             tr.appendChild(td);
         });
-        table.appendChild(tr);
+
+        i === 0 ? thead.appendChild(tr) : tbody.appendChild(tr);
     });
 
+    table.appendChild(thead);
+    table.appendChild(tbody);
     preview.appendChild(table);
 }
 
-let allRows = []; // Global CSV storage
+
+function sortTableByColumn(columnIndex) {
+    if (!allRows.length || columnIndex === undefined) return;
+
+    const header = allRows[0];
+    const rows = allRows.slice(1);
+
+    if (currentSortColumn === columnIndex) {
+        sortAscending = !sortAscending;
+    } else {
+        currentSortColumn = columnIndex;
+        sortAscending = true;
+    }
+
+    const isNumeric = !isNaN(rows[0][columnIndex]);
+
+    const sortedRows = [...rows].sort((a, b) => {
+        const valA = a[columnIndex]?.toLowerCase();
+        const valB = b[columnIndex]?.toLowerCase();
+
+        if (isNumeric) {
+            return sortAscending
+                ? parseFloat(valA) - parseFloat(valB)
+                : parseFloat(valB) - parseFloat(valA);
+        } else {
+            return sortAscending
+                ? valA.localeCompare(valB)
+                : valB.localeCompare(valA);
+        }
+    });
+
+    allRows = [header, ...sortedRows];
+    displayTable(allRows); // refresh UI with updated icon
+}
+
 
 
 function displayNoMatchMessage() {
     const preview = document.getElementById("csv_preview");
-    preview.innerHTML = ""; // Clear table
+    preview.innerHTML = "";
 
     const msg = document.createElement("p");
-    msg.innerText = "⚠️ No matching DRUG_ID found.";
+    msg.innerText = "⚠️ No matching cancer type found.";
     msg.style = "color: #ff7675; font-size: 18px; margin-top: 20px;";
     preview.appendChild(msg);
 }
+
+// Show tooltip modal
+function showRequirements() {
+    const tooltip = document.getElementById("tooltip-box");
+    tooltip.style.display = tooltip.style.display === "block" ? "none" : "block";
+}
+
+
+let allRows = []; // CSV data stored globally
+
+
+document.getElementById("search_button").addEventListener("click", function () {
+    if (!allRows.length) return;
+
+    const cancerInput = document.getElementById("cancer_search").value.trim().toLowerCase();
+    const header = allRows[0];
+    const ccleIndex = header.indexOf("CCLE_Name");
+
+    if (ccleIndex === -1) return;
+
+    const validCancers = ["breast", "lung", "neck"];
+    const downloadBtn = document.getElementById("download_cancer");
+
+    // ✅ Show download button only if input is EXACT match
+    if (validCancers.includes(cancerInput)) {
+        downloadBtn.style.display = "inline-block";
+        downloadBtn.dataset.cancer = cancerInput;
+        downloadBtn.innerText = `⬇️ Download ${cancerInput.charAt(0).toUpperCase() + cancerInput.slice(1)} Prediction File`;
+    } else {
+        downloadBtn.style.display = "none";
+    }
+
+    const filteredRows = allRows.slice(1).filter(row => {
+        const ccle = row[ccleIndex]?.toLowerCase();
+        const cancerType = ccle?.split("_")[1];
+        return !cancerInput || (cancerType && cancerType === cancerInput);
+    });
+
+    if (filteredRows.length === 0) {
+        displayNoMatchMessage();
+        return;
+    }
+
+    const filtered = [header, ...filteredRows];
+    displayTable(filtered);
+});
+
+
+
+document.getElementById("download_cancer").addEventListener("click", function () {
+    const table = document.querySelector(".styled-table");
+    if (!table) return;
+
+    const rows = Array.from(table.querySelectorAll("tr"));
+    let csvContent = "";
+
+    rows.forEach(tr => {
+        const cells = tr.querySelectorAll("th, td");
+        const row = Array.from(cells).map(cell => `"${cell.innerText.trim()}"`).join(",");
+        csvContent += row + "\n";
+    });
+
+    const cancer = this.dataset.cancer || "cancer";
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${cancer}_cancer_data.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+
